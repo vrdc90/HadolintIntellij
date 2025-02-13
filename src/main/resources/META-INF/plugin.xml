@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>com.vrdc.hadolint</id>
+    <name>Hadolint Annotator</name>
+    <version>0.0.1</version>
+    <vendor email="vradic90+hado@gmail.com">vrdc</vendor>
+    <description>
+        A plugin that runs hadolint on Dockerfiles and highlights issues.
+    </description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+
+    <idea-version since-build="241" until-build="241.*"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <externalAnnotator
+                language=""
+                implementationClass="com.vrdc.HadolintAnnotator" />
+    </extensions>
+</idea-plugin>
