@@ -74,7 +74,7 @@ hadolint --version
 
 ## Using the Plugin
 
-1. Install the **Hadolint Plugin** from the IntelliJ Marketplace or from zip in Releases.
+1. Install the **Hadolint Plugin** from zip in Releases (until pusshed to Marketplace).
   
 2. Open a Dockerfile in IntelliJ, and the plugin will automatically lint it using Hadolint.
   
