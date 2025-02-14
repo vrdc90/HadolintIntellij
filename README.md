@@ -1,7 +1,7 @@
 # Hadolint Plugin for IntelliJ
 
 This is an IntelliJ plugin that integrates **Hadolint**, a Dockerfile linter, into your IDE.
-This plugin is not officially related to the Hadolint project. 
+This plugin is not officially related to the [Hadolint project](https://github.com/hadolint/hadolint). 
 
 Before using the plugin, you need to install Hadolint on your machine. Here's how to set it up:
 
