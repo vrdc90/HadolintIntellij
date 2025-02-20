@@ -10,6 +10,7 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import java.io.File
 
 class HadolintAnnotator : ExternalAnnotator<PsiFile, List<HadolintAnnotator.Result>>() {
 
@@ -34,7 +35,10 @@ class HadolintAnnotator : ExternalAnnotator<PsiFile, List<HadolintAnnotator.Resu
 
     private fun runHadolint(content: String, document: Document): List<Result> {
         return try {
-            val process = ProcessBuilder("hadolint", "--format", "json", "-").apply {
+            val hadolintPath = findHadolintPath()
+                ?: throw IllegalStateException("hadolint not found in common paths or system PATH")
+
+            val process = ProcessBuilder(hadolintPath, "--format", "json", "-").apply {
                 redirectErrorStream(true)
             }.start()
 
@@ -105,6 +109,60 @@ class HadolintAnnotator : ExternalAnnotator<PsiFile, List<HadolintAnnotator.Resu
 
                 holder.newAnnotation(severity, result.message).range(safeRange).create()
             }
+        }
+    }
+
+    private fun getHadolintPaths(): List<String> {
+        val os = System.getProperty("os.name").lowercase()
+        return when {
+            os.contains("mac") -> listOf(
+                "/usr/local/bin/hadolint",
+                "/opt/homebrew/bin/hadolint"
+            )
+
+            os.contains("nix") || os.contains("nux") || os.contains("aix") -> listOf(
+                "/usr/local/bin/hadolint",
+                "/usr/bin/hadolint",
+                "/bin/hadolint"
+            )
+
+            os.contains("win") -> listOf(
+                System.getenv("ProgramFiles") + "\\Hadolint\\hadolint.exe",
+                System.getenv("LocalAppData") + "\\Hadolint\\hadolint.exe",
+                "C:\\tools\\hadolint\\hadolint.exe"
+            )
+
+            else -> emptyList()
+        }
+    }
+
+    private fun findHadolintPath(): String? {
+        getHadolintPaths().forEach { path ->
+            if (File(path).exists()) {
+                logger.info("Found hadolint at: $path")
+                return path
+            }
+        }
+
+        return try {
+            val command = if (System.getProperty("os.name").lowercase().contains("win")) {
+                arrayOf("where", "hadolint")
+            } else {
+                arrayOf("which", "hadolint")
+            }
+
+            val process = ProcessBuilder(*command).start()
+            val output = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+
+            if (process.exitValue() == 0 && output.isNotEmpty()) {
+                output.lineSequence().firstOrNull()?.trim()
+            } else {
+                null
+            }
+        } catch (ex: Exception) {
+            logger.error("Error searching PATH for hadolint: ${ex.message}")
+            null
         }
     }
 }
